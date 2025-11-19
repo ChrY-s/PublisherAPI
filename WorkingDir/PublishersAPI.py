@@ -1,8 +1,10 @@
 from bson import ObjectId
 from pymongo import AsyncMongoClient
-import asyncio
+
+import tornado
 from tornado.web import Application, RequestHandler
 
+import asyncio
 import json
 
 # DB Mongo con cui posso interagire
@@ -15,6 +17,7 @@ books_collection = db["books"]
 
 # Publisher handler
 class PublisherHandler(RequestHandler):
+    # Ricerca una casa editrice
     async def get(self, id = None):
         self.set_header("Content-Type", "application/json")
 
@@ -56,8 +59,23 @@ class PublisherHandler(RequestHandler):
         self.write({"ok": response})
         self.set_status(200)
 
-    def post(self):
-        pass
+    # Aggiunge una casa editrice
+    async def post(self):
+        self.set_header("Content-Type", "application/json")
+
+        # Controllo se ho inviato dei dati
+        try:
+            data = tornado.escape.json_decode(self.request.body)
+        except:
+            self.set_status(400)
+            self.write({"error": "Insert data"})
+            return
+
+        # Inserisco il publisher nel DB
+        await publishers_collection.insert_one(data)
+
+        self.set_status(201)
+        self.write({"ok": json.dumps(data)})
 
     def put(self):
         pass

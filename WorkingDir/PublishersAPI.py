@@ -90,7 +90,7 @@ class PublisherHandler(RequestHandler):
             return
 
         # Prendo l'id del publisher
-        publisher_id = data["_id"]
+        publisher_id = id
         new_name = data["name"]
         new_year = data["founded_year"]
         new_country = data["country"]

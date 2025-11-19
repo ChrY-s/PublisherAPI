@@ -110,8 +110,23 @@ class PublisherHandler(RequestHandler):
         self.set_status(202)
         self.write({"ok": json.dumps(data)})
 
-    def delete(self):
-        pass
+    # Rimuovo il publisher
+    async def delete(self, id):
+        self.set_header("Content-Type", "application/json")
+
+        # Controllo se esiste l'id del publisher
+        try:
+            await publishers_collection.find_one({"_id": ObjectId(id)})
+        except:
+            self.set_status(400)
+            self.write({"error": "ID not existent"})
+            return
+
+        # Rimuovo il publisher
+        await publishers_collection.delete_one({"_id": ObjectId(id)})
+
+        self.set_status(202)
+        self.write({"ok": "publisher deleted"})
 
 # Book handler
 class BookHandler(RequestHandler):

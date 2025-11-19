@@ -77,8 +77,38 @@ class PublisherHandler(RequestHandler):
         self.set_status(201)
         self.write({"ok": json.dumps(data)})
 
-    def put(self):
-        pass
+    # Modifico un publisher
+    async def put(self, id):
+        self.set_header("Content-Type", "application/json")
+
+        # Controllo se ho inviato dei dati
+        try:
+            data = tornado.escape.json_decode(self.request.body)
+        except:
+            self.set_status(400)
+            self.write({"error": "Insert data"})
+            return
+
+        # Prendo l'id del publisher
+        publisher_id = data["_id"]
+        new_name = data["name"]
+        new_year = data["founded_year"]
+        new_country = data["country"]
+
+        # Controllo se esiste
+        try:
+            await publishers_collection.find_one({"_id": ObjectId(publisher_id)})
+        except:
+            self.set_status(400)
+            self.write({"error": "ID not existent"})
+            return
+
+        await publishers_collection.update_one({"_id": ObjectId(publisher_id)}, { "name" : new_name,
+                                                                                            "founded_year" : new_year,
+                                                                                            "country" : new_country })
+
+        self.set_status(202)
+        self.write({"ok": json.dumps(data)})
 
     def delete(self):
         pass

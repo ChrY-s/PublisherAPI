@@ -74,8 +74,11 @@ class PublisherHandler(RequestHandler):
         # Inserisco il publisher nel DB
         await publishers_collection.insert_one(data)
 
+        # Converto l'id del publisher solo per l'invio in json
+        data["_id"] = str(data["_id"])
+
         self.set_status(201)
-        self.write({"ok": json.dumps(data)})
+        self.write({"ok": data})
 
     # Modifico un publisher
     async def put(self, id):
@@ -103,9 +106,9 @@ class PublisherHandler(RequestHandler):
             self.write({"error": "ID not existent"})
             return
 
-        await publishers_collection.update_one({"_id": ObjectId(publisher_id)}, { "name" : new_name,
-                                                                                            "founded_year" : new_year,
-                                                                                            "country" : new_country })
+        await publishers_collection.update_one({"_id": ObjectId(publisher_id)}, {"$set" : { "name" : new_name,
+                                                                                                        "founded_year" : new_year,
+                                                                                                        "country" : new_country } })
 
         self.set_status(202)
         self.write({"ok": json.dumps(data)})
@@ -130,10 +133,10 @@ class PublisherHandler(RequestHandler):
 
 # Book handler
 class BookHandler(RequestHandler):
-    def get(self):
+    async def get(self, publisher_id, book_id = None):
         pass
 
-    def post(self):
+    async def post(self):
         pass
 
     def put(self):

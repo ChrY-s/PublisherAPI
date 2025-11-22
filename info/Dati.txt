@@ -57,21 +57,21 @@ BOOKS
     "author": "Dan Brown",
     "genre": "Giallo",
     "year": 2003,
-    "publisher_id": "OBJECT_ID_PENGUIN"
+    "publisher_id": "69218f72bf6ae795f69dc2ae"
   },
   {
     "title": "Harry Potter e la pietra filosofale", 
     "author": "J.K. Rowling",
     "genre": "Fantasy",
     "year": 1997,
-    "publisher_id": "OBJECT_ID_PENGUIN"
+    "publisher_id": "69218f72bf6ae795f69dc2ae"
   },
   {
     "title": "Il signore degli anelli",
     "author": "J.R.R. Tolkien",
     "genre": "Fantasy",
     "year": 1954,
-    "publisher_id": "OBJECT_ID_PENGUIN"
+    "publisher_id": "69218f72bf6ae795f69dc2ae"
   },
   {
     "title": "1984",

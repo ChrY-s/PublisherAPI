@@ -133,6 +133,7 @@ class PublisherHandler(RequestHandler):
 
 # Book handler
 class BookHandler(RequestHandler):
+    # Mostro uno o piu libri
     async def get(self, publisher_id, book_id = None):
         self.set_header("Content-Type", "application/json")
 
@@ -175,8 +176,26 @@ class BookHandler(RequestHandler):
         self.write({"ok": response})
         self.set_status(200)
 
-    async def post(self):
-        pass
+    # Aggiungo un libro
+    async def post(self, publisher_id):
+        self.set_header("Content-Type", "application/json")
+
+        # Controllo se ho inviato dei dati
+        try:
+            data = tornado.escape.json_decode(self.request.body)
+        except:
+            self.set_status(400)
+            self.write({"error": "Insert data"})
+            return
+
+        # Inserisco il libro nel DB
+        await books_collection.insert_one(data)
+
+        # Converto l'id del libri solo per l'invio in json
+        data["_id"] = str(data["_id"])
+
+        self.set_status(201)
+        self.write({"ok": data})
 
     def put(self):
         pass

@@ -177,7 +177,7 @@ class BookHandler(RequestHandler):
         self.set_status(200)
 
     # Aggiungo un libro
-    async def post(self, publisher_id):
+    async def post(self, publisher_id, book_id):
         self.set_header("Content-Type", "application/json")
 
         # Controllo se ho inviato dei dati
@@ -197,11 +197,43 @@ class BookHandler(RequestHandler):
         self.set_status(201)
         self.write({"ok": data})
 
-    def put(self):
-        pass
+    # Aggiorno un libro
+    async def put(self, publisher_id, book_id):
+        self.set_header("Content-Type", "application/json")
+
+        # Controllo se ho inviato dei dati
+        try:
+            data = tornado.escape.json_decode(self.request.body)
+        except:
+            self.set_status(400)
+            self.write({"error": "Insert data"})
+            return
+
+        # Prendo l'id del libro
+        new_title = data["title"]
+        new_author = data["author"]
+        new_genre = data["genre"]
+        new_year = data["year"]
+
+        # Controllo se esiste
+        try:
+            await books_collection.find_one({"_id": ObjectId(book_id)})
+        except:
+            self.set_status(400)
+            self.write({"error": "ID not existent"})
+            return
+
+        await books_collection.update_one({"_id": ObjectId(book_id)}, {"$set": {"title": new_title,
+                                                                                          "author": new_author,
+                                                                                          "genre": new_genre,
+                                                                                          "year": new_year}})
+
+        self.set_status(202)
+        self.write({"ok": json.dumps(data)})
+
 
     def delete(self):
-        pass
+            pass
 
 
 def make_app():

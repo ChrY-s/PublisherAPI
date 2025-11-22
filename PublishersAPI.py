@@ -134,7 +134,46 @@ class PublisherHandler(RequestHandler):
 # Book handler
 class BookHandler(RequestHandler):
     async def get(self, publisher_id, book_id = None):
-        pass
+        self.set_header("Content-Type", "application/json")
+
+        # Se non indico un libro preciso restituisce tutti i libri
+        if not book_id:
+            # lista con tutti i libri
+            books = []
+
+            # Dati di tutti i libri della casa editrice
+            bk_data = books_collection.find({"publisher_id": publisher_id})
+
+            # Inserisco tutti i libri nella lista che invierò alla pagina html
+            async for bk in bk_data:
+                # Converto l'id BSON in STR
+                bk["_id"] = str(bk["_id"])
+
+                books.append(bk)
+
+            # Risposta da inviare
+            response = books
+
+        # Mostro il libro desiderato
+        else:
+            # Trovo il libro a cui corrisponde l'id
+            bk = await books_collection.find_one({"publisher_id": publisher_id,
+                                                  "_id" : ObjectId(book_id)})
+
+            # Non ho trovato un indice corrispondente
+            if not bk:
+                self.write({"error": "resource not found"})
+                self.set_status(404)
+                return
+
+            # Converto l'id BSON in STR
+            bk["_id"] = str(bk["_id"])
+
+            # Risposta da inviare
+            response = bk
+
+        self.write({"ok": response})
+        self.set_status(200)
 
     async def post(self):
         pass

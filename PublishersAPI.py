@@ -4,8 +4,11 @@ from pymongo import AsyncMongoClient
 import tornado
 from tornado.web import Application, RequestHandler
 
+import nest_asyncio
 import asyncio
 import json
+
+nest_asyncio.apply()
 
 # DB Mongo con cui posso interagire
 client = AsyncMongoClient("localhost", 27017)
@@ -20,6 +23,19 @@ class PublisherHandler(RequestHandler):
     # Ricerca una casa editrice
     async def get(self, id = None):
         self.set_header("Content-Type", "application/json")
+
+        # Controllo se l'utente ha inserito dei filtri nella QS
+        # - name
+        # - country
+        try:
+            name_filter = self.get_argument("name")
+        except:
+            name_filter = None
+
+        try:
+            country_filter = self.get_argument("country")
+        except:
+            country_filter = None
 
         # Se non indico un publisher preciso restituisce tutte le case editrici
         if not id:
@@ -56,7 +72,28 @@ class PublisherHandler(RequestHandler):
             # Risposta da inviare
             response = pb
 
-        self.write({"ok": response})
+        # Applico gli eventuali filtri
+        country_filtered = []
+
+        if country_filter:
+            # unfiltered publisher
+            for upb in response:
+                if upb['country'] == country_filter:
+                    country_filtered.append(upb)
+        else:
+            country_filtered = response
+
+        name_filtered = []
+
+        if name_filter:
+            # unfiltered publisher
+            for upb in country_filtered:
+                if upb["name"] == name_filter:
+                    name_filtered.append(upb)
+        else:
+            name_filtered = country_filtered
+
+        self.write({"ok": name_filtered})
         self.set_status(200)
 
     # Aggiunge una casa editrice
@@ -137,6 +174,25 @@ class BookHandler(RequestHandler):
     async def get(self, publisher_id, book_id = None):
         self.set_header("Content-Type", "application/json")
 
+        # Controllo se l'utente ha inserito dei filtri nella QS
+        # - title
+        # - author
+        # - genre
+        try:
+            title_filter = self.get_argument("title")
+        except:
+            title_filter = None
+
+        try:
+            author_filter = self.get_argument("author")
+        except:
+            author_filter = None
+
+        try:
+            genre_filter = self.get_argument("genre")
+        except:
+            genre_filter = None
+
         # Se non indico un libro preciso restituisce tutti i libri
         if not book_id:
             # lista con tutti i libri
@@ -173,7 +229,35 @@ class BookHandler(RequestHandler):
             # Risposta da inviare
             response = bk
 
-        self.write({"ok": response})
+        title_filtered = []
+        # Applico gli eventuali filtri
+        if title_filter:
+            # unfiltered book
+            for ub in response:
+                if ub["title"] == title_filter:
+                    title_filtered.append(ub)
+        else:
+            title_filtered = response
+
+        author_filtered = []
+        if author_filter:
+            # unfiltered book
+            for ub in title_filtered:
+                if ub["author"] == author_filter:
+                    author_filtered.append(ub)
+        else:
+            author_filtered = title_filtered
+
+        genre_filtered = []
+        if genre_filter:
+            # unfiltered book
+            for ub in author_filtered:
+                if ub["genre"] == genre_filter:
+                    genre_filtered.append(ub)
+        else:
+            genre_filtered = author_filtered
+
+        self.write({"ok": genre_filtered})
         self.set_status(200)
 
     # Aggiungo un libro
@@ -231,9 +315,23 @@ class BookHandler(RequestHandler):
         self.set_status(202)
         self.write({"ok": json.dumps(data)})
 
+    # Elimino un libro
+    async def delete(self, publisher_id, book_id):
+        self.set_header("Content-Type", "application/json")
 
-    def delete(self):
-            pass
+        # Controllo se esiste l'id del libro
+        try:
+            await books_collection.find_one({"_id": ObjectId(book_id)})
+        except:
+            self.set_status(400)
+            self.write({"error": "ID not existent"})
+            return
+
+        # Rimuovo il libro
+        await books_collection.delete_one({"_id": ObjectId(book_id)})
+
+        self.set_status(202)
+        self.write({"ok": "publisher deleted"})
 
 
 def make_app():
